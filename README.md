@@ -129,4 +129,6 @@ The Bash setup script safely configures a generated project without arbitrary ov
 
 After review and merge, the backend and frontend repositories must be marked as GitHub Template Repositories from `Settings -> General -> Template repository`. This is a post-merge checklist item, not an automated repository mutation.
 
-No legal license is included until the repository owner selects one.
+## License
+
+This template is distributed under the [Apache License 2.0](LICENSE).

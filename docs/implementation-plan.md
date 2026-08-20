@@ -18,4 +18,4 @@ Keep OpenAPI documentation separate from code and split it by module. Add develo
 
 ## Explicit non-goals
 
-Google OAuth, frontend implementation, authentication, authorization, and a legal `LICENSE` file are outside this delivery.
+Google OAuth, frontend implementation, authentication, and authorization are outside this delivery. The repository license is Apache-2.0.

@@ -5,6 +5,7 @@
   "template_commit": "",
   "generated_from": "",
   "repository": "ThatSoftwareCompany/template-go-api",
+  "license": "Apache-2.0",
   "minimum_go_version": "1.26.0",
   "database": "PostgreSQL",
   "migration_tool": "golang-migrate",

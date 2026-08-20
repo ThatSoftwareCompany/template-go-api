@@ -10,7 +10,7 @@ This repository is the canonical backend template for That Software Company. It 
 - Keep controllers, services, repositories, clients, and DTOs separated by module. `repository` is for persistence; `client` is for external APIs.
 - Keep OpenAPI documentation in `docs/openapi/`, separated from HTTP controllers and split by module.
 - Never commit `.env`, credentials, tokens, passwords, private keys, or other secrets. `.env.example` may contain placeholders only.
-- Do not add a legal license until the repository owner decides which license to use.
+- The repository is licensed under Apache-2.0. Do not change the declared license without repository-owner approval.
 - Do not change the frontend template from this repository.
 
 ## Architecture
