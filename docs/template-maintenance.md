@@ -1,0 +1,30 @@
+# Template maintenance
+
+The manifest is the source of truth for the template identity, version, source repository, compatibility, and generated origin.
+
+## Planned update mechanism
+
+The future maintenance workflow will:
+
+1. Detect a newer `template_version` or template commit from `ThatSoftwareCompany/template-go-api`.
+2. Compare the generated repository's recorded `generated_from` and compatibility fields.
+3. Create an automatic pull request in each derived repository with the template changes.
+4. Run the derived repository's Go, integration, Docker, and compatibility checks.
+5. Record incompatible or breaking changes in the template changelog and PR description.
+6. Leave small file conflicts for manual resolution; it must never overwrite unrelated application code automatically.
+
+The update workflow/script is intentionally planned rather than enabled in this foundation. It must use least-privilege GitHub permissions and must not merge generated pull requests automatically.
+
+## Compatibility policy
+
+- Patch and compatible minor template updates may be proposed automatically when the declared Go and PostgreSQL compatibility ranges remain valid.
+- Changes to public routes, configuration semantics, database migrations, dependency major versions, or security behavior require an explicit compatibility note.
+- Breaking changes require a new documented template version and a migration note for derived repositories.
+
+## Post-merge repository checklist
+
+After this backend PR and the separate frontend PR are reviewed and merged:
+
+- [ ] Mark `ThatSoftwareCompany/template-go-api` as a GitHub Template Repository in `Settings -> General -> Template repository`.
+- [ ] Mark the frontend template repository as a GitHub Template Repository in `Settings -> General -> Template repository`.
+- [ ] Confirm that template generation preserves the manifest and setup-script behavior.
