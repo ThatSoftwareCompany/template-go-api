@@ -20,6 +20,8 @@
     "postgresql": "16+"
   },
   "update_policy": {
+    "manifest_validation": "implemented",
+    "provenance_recording": "implemented",
     "version_detection": "planned",
     "derived_repository_prs": "planned",
     "compatibility_checks": "planned",

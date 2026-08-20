@@ -2,6 +2,14 @@
 
 The manifest is the source of truth for the template identity, version, source repository, compatibility, and generated origin.
 
+## Implemented lifecycle safeguards
+
+- `scripts/setup.sh` records `template_commit` from the source Git commit when available.
+- `scripts/setup.sh` records `generated_from` from the derived repository identifier or module path.
+- `cmd/template -command validate` validates the manifest contract.
+- `scripts/validate-template.sh` verifies required template files and blocks a real `.env` file.
+- CI runs the lifecycle validation and writes build outputs outside the repository root.
+
 ## Planned update mechanism
 
 The future maintenance workflow will:

@@ -11,6 +11,7 @@ app_name=""
 environment="development"
 database_enabled="true"
 architecture="modular-mvc"
+generated_from=""
 
 usage() {
   cat <<'EOF'
@@ -24,6 +25,7 @@ Options:
   --environment ENV         development, test, or production
   --database-enabled BOOL   true or false
   --architecture NAME       modular-mvc
+  --generated-from VALUE    Derived repository identifier (defaults to module path)
   -h, --help                Show this help
 EOF
 }
@@ -60,6 +62,11 @@ while [[ $# -gt 0 ]]; do
       architecture=$2
       shift 2
       ;;
+    --generated-from)
+      [[ $# -ge 2 ]] || { echo "--generated-from requires a value" >&2; exit 2; }
+      generated_from=$2
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -83,6 +90,13 @@ if [[ ! "$project_name" =~ ^[A-Za-z0-9][A-Za-z0-9._\ \'-]*$ ]]; then
 fi
 if [[ ! "$module_path" =~ ^[A-Za-z0-9][A-Za-z0-9._/-]*$ ]]; then
   echo "module path contains unsupported characters" >&2
+  exit 2
+fi
+if [[ -z "$generated_from" ]]; then
+  generated_from=$module_path
+fi
+if [[ ! "$generated_from" =~ ^[A-Za-z0-9][A-Za-z0-9._:/-]*$ ]]; then
+  echo "generated-from contains unsupported characters" >&2
   exit 2
 fi
 if [[ -z "$app_name" ]]; then
@@ -139,6 +153,21 @@ replace_token() {
   fi
 }
 
+replace_empty_manifest_field() {
+  local field=$1
+  local value=$2
+  local escaped
+  escaped=$(escape_sed "$value")
+  local token="\"${field}\": \"\""
+  if grep -Fq "$token" "$manifest"; then
+    local temporary
+    temporary=$(mktemp "${manifest}.setup.XXXXXX")
+    sed "s|${token}|\"${field}\": \"${escaped}\"|" "$manifest" > "$temporary"
+    mv "$temporary" "$manifest"
+    mark_changed ".template/manifest.json"
+  fi
+}
+
 changed_files=()
 template_module="github.com/ThatSoftwareCompany/template-go-api"
 
@@ -180,6 +209,15 @@ replace_token "$manifest" "{{APP_NAME}}" "$app_name"
 replace_token "$manifest" "{{APP_ENV}}" "$environment"
 replace_token "$manifest" "{{DATABASE_ENABLED}}" "$database_enabled"
 replace_token "$manifest" "{{ARCHITECTURE}}" "$architecture"
+replace_empty_manifest_field "generated_from" "$generated_from"
+
+template_commit=""
+if template_commit=$(git -C "$repo_root" rev-parse --verify HEAD 2>/dev/null); then
+  replace_empty_manifest_field "template_commit" "$template_commit"
+else
+  echo "Git metadata is unavailable; template_commit remains empty"
+fi
+
 replace_token "$readme" "{{PROJECT_NAME}}" "$project_name"
 replace_token "$readme" "{{APP_NAME}}" "$app_name"
 replace_token "$env_example" "APP_NAME=template-go-api" "APP_NAME=${app_name}"

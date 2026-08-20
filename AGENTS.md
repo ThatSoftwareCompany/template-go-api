@@ -41,6 +41,7 @@ go vet ./...
 go test ./...
 go mod tidy
 go mod verify
+go run ./cmd/template -command validate
 go build ./cmd/api
 go build ./cmd/migrate
 ```
@@ -49,6 +50,12 @@ Integration tests use the `integration` build tag and require PostgreSQL:
 
 ```bash
 go test -tags=integration ./...
+```
+
+The template lifecycle validation also checks required files and metadata:
+
+```bash
+./scripts/validate-template.sh
 ```
 
 ## Git and review
