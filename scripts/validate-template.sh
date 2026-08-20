@@ -10,9 +10,11 @@ required_files=(
   "AGENTS.md"
   ".env.example"
   ".template/manifest.json"
+  ".github/workflows/template-update.yml"
   "docs/openapi/openapi.yaml"
   "migrations/000001_create_error_events.up.sql"
   "migrations/000001_create_error_events.down.sql"
+  "scripts/template-update.sh"
 )
 
 for relative_file in "${required_files[@]}"; do
@@ -26,6 +28,8 @@ if [[ -e "${repo_root}/.env" ]]; then
   echo "a real .env file must not be committed to the template" >&2
   exit 1
 fi
+
+bash -n "${repo_root}/scripts/setup.sh" "${repo_root}/scripts/template-update.sh"
 
 go_cache=${GOCACHE:-}
 if [[ -z "$go_cache" || ! -d "$go_cache" || ! -w "$go_cache" ]]; then

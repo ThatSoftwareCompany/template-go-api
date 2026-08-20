@@ -127,7 +127,11 @@ Validate the template manifest and required files with:
 
 ## Template metadata and updates
 
-`.template/manifest.json` records the source repository, template version, template commit, generated origin, compatibility, dependencies, and update policy. Future update automation will detect new template versions, open PRs in derived repositories, enforce compatibility, record breaking changes, and leave minimal conflicts for manual resolution.
+`.template/manifest.json` records the source repository, template version, template commit, generated origin, compatibility, dependencies, and update policy. The update automation detects new template versions, opens PRs in derived repositories, enforces compatibility, and leaves breaking-change records and application-specific conflicts for manual review.
+
+The generated repository also includes a scheduled and manually dispatchable template-update workflow. It looks for `vMAJOR.MINOR.PATCH` tags, applies a three-way patch from the recorded `template_commit`, checks Go and PostgreSQL compatibility, records new provenance, and opens a pull request. It never merges automatically. The repository owner must allow GitHub Actions to create pull requests and review generated changes manually.
+
+The template maintainer must publish version tags such as `v0.1.0` before derived repositories can detect releases. The initial release tag should point to the merged template commit.
 
 ## Planned phases
 
