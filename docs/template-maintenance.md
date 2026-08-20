@@ -4,7 +4,7 @@ The manifest is the source of truth for the template identity, version, source r
 
 ## Implemented lifecycle safeguards
 
-- `scripts/setup.sh` records `template_commit` from the source Git commit when available.
+- `scripts/setup.sh` resolves `template_commit` from the published source tag and never uses the generated repository's own commit.
 - `scripts/setup.sh` records `generated_from` from the derived repository identifier or module path.
 - `cmd/template -command validate` validates the manifest contract.
 - `scripts/validate-template.sh` verifies required template files and blocks a real `.env` file.
@@ -24,6 +24,8 @@ The derived-repository workflow performs these steps:
 5. Record the new `template_version` and `template_commit`.
 6. Create an update pull request in the derived repository.
 7. Leave application-specific conflicts for manual resolution; it must never merge generated pull requests automatically.
+
+If a generated repository contains its own Git commit in `template_commit`, the workflow resolves the source commit from the matching release tag and opens a provenance-repair pull request.
 
 The workflow requires GitHub Actions to be allowed to create pull requests in the derived repository. It is skipped when running in the canonical template repository itself.
 
