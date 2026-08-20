@@ -113,7 +113,16 @@ The Bash setup script safely configures a generated project without arbitrary ov
   --app-name "example-api" \
   --environment development \
   --database-enabled true \
-  --architecture modular-mvc
+  --architecture modular-mvc \
+  --generated-from "ThatSoftwareCompany/example-api"
+```
+
+The setup script records the source commit in `template_commit` when Git metadata is available. It records `generated_from` from `--generated-from`, defaulting to the generated module path, and preserves both values on subsequent idempotent runs.
+
+Validate the template manifest and required files with:
+
+```bash
+./scripts/validate-template.sh
 ```
 
 ## Template metadata and updates

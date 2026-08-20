@@ -8,6 +8,8 @@ Build a runnable Go 1.26 modular monolith with PostgreSQL enabled by default and
 
 Keep OpenAPI documentation separate from code and split it by module. Add development and production Docker targets, a PostgreSQL Compose service, GitHub Actions quality checks, unit/HTTP/integration tests, a template manifest, and an idempotent setup script.
 
+The template lifecycle foundation records generated-project provenance, validates the manifest contract, and verifies required template files in CI. Automatic derived-repository update PRs remain a subsequent phase.
+
 ## Future phases
 
 - Authentication: Argon2id passwords, Ed25519/EdDSA JWTs, approximately 15-minute access tokens, 30-day rotating/revocable refresh tokens, HttpOnly cookies, environment-specific Secure and SameSite policy, CSRF protection, authentication/authorization middleware, and securely managed Ed25519 keys.

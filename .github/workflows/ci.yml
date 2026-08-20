@@ -31,6 +31,9 @@ jobs:
       - name: Verify module checksums
         run: go mod verify
 
+      - name: Validate template lifecycle
+        run: ./scripts/validate-template.sh
+
       - name: Check formatting
         run: test -z "$(gofmt -l .)"
 
@@ -40,11 +43,14 @@ jobs:
       - name: Test
         run: go test ./...
 
+      - name: Race test
+        run: go test -race ./...
+
       - name: Build API
-        run: go build ./cmd/api
+        run: go build -o "$RUNNER_TEMP/template-api" ./cmd/api
 
       - name: Build migration CLI
-        run: go build ./cmd/migrate
+        run: go build -o "$RUNNER_TEMP/template-migrate" ./cmd/migrate
 
   integration:
     runs-on: ubuntu-latest
