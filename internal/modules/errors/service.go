@@ -19,5 +19,18 @@ func (s *Service) List(ctx context.Context, request ListRequest) (ListResponse, 
 	if err != nil {
 		return ListResponse{}, err
 	}
-	return ListResponse{Items: items}, nil
+	response := ListResponse{Items: make([]ErrorEvent, 0, len(items))}
+	for _, item := range items {
+		response.Items = append(response.Items, ErrorEvent{
+			OccurredAt:    item.OccurredAt,
+			CorrelationID: item.CorrelationID,
+			Method:        item.Method,
+			Path:          item.Path,
+			Endpoint:      item.Endpoint,
+			StatusCode:    item.StatusCode,
+			ErrorCode:     item.ErrorCode,
+			Message:       item.Message,
+		})
+	}
+	return response, nil
 }

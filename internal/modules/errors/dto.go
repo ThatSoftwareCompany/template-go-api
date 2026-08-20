@@ -2,8 +2,6 @@ package errors
 
 import (
 	"time"
-
-	"github.com/ThatSoftwareCompany/template-go-api/internal/platform/errstore"
 )
 
 type ListRequest struct {
@@ -12,7 +10,7 @@ type ListRequest struct {
 }
 
 type ListResponse struct {
-	Items []errstore.ErrorEvent `json:"items"`
+	Items []ErrorEvent `json:"items"`
 }
 
 type ErrorEvent struct {
