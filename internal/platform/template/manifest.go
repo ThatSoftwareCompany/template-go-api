@@ -55,6 +55,41 @@ func Load(path string) (Manifest, error) {
 	return manifest, nil
 }
 
+func RecordProvenance(path, version, commit string) error {
+	if !versionPattern.MatchString(version) {
+		return fmt.Errorf("template version must use major.minor.patch format")
+	}
+	if !commitPattern.MatchString(commit) {
+		return fmt.Errorf("template commit must be a 40-character lowercase commit SHA")
+	}
+
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read manifest: %w", err)
+	}
+
+	updated, err := replaceStringField(contents, "template_version", version)
+	if err != nil {
+		return err
+	}
+	updated, err = replaceStringField(updated, "template_commit", commit)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(path, updated, 0o644); err != nil {
+		return fmt.Errorf("write manifest: %w", err)
+	}
+	return nil
+}
+
+func replaceStringField(contents []byte, field, value string) ([]byte, error) {
+	pattern := regexp.MustCompile(`(?m)^([[:space:]]*"` + regexp.QuoteMeta(field) + `"[[:space:]]*:[[:space:]]*")[^"]*(".*)$`)
+	if len(pattern.FindAllIndex(contents, -1)) != 1 {
+		return nil, fmt.Errorf("manifest field must appear exactly once: %s", field)
+	}
+	return pattern.ReplaceAll(contents, []byte("${1}"+value+"${2}")), nil
+}
+
 func (m Manifest) Validate() error {
 	checks := map[string]bool{
 		"template_id":              m.TemplateID != "",

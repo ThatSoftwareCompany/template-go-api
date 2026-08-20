@@ -9,19 +9,23 @@ The manifest is the source of truth for the template identity, version, source r
 - `cmd/template -command validate` validates the manifest contract.
 - `scripts/validate-template.sh` verifies required template files and blocks a real `.env` file.
 - CI runs the lifecycle validation and writes build outputs outside the repository root.
+- `scripts/template-update.sh` applies a three-way patch between recorded and target template commits.
+- `.github/workflows/template-update.yml` detects version tags and opens derived-repository PRs with least-privilege write permissions.
+- Compatibility changes are rejected automatically; file deletions remain a manual migration.
 
-## Planned update mechanism
+## Update workflow
 
-The future maintenance workflow will:
+The derived-repository workflow performs these steps:
 
-1. Detect a newer `template_version` or template commit from `ThatSoftwareCompany/template-go-api`.
-2. Compare the generated repository's recorded `generated_from` and compatibility fields.
-3. Create an automatic pull request in each derived repository with the template changes.
-4. Run the derived repository's Go, integration, Docker, and compatibility checks.
-5. Record incompatible or breaking changes in the template changelog and PR description.
-6. Leave small file conflicts for manual resolution; it must never overwrite unrelated application code automatically.
+1. Detect the newest `vMAJOR.MINOR.PATCH` tag from `ThatSoftwareCompany/template-go-api`.
+2. Compare the generated repository's recorded `template_commit` and compatibility fields.
+3. Apply a three-way patch from the recorded commit to the tagged commit.
+4. Refuse incompatible Go/PostgreSQL changes and template file deletions.
+5. Record the new `template_version` and `template_commit`.
+6. Create an update pull request in the derived repository.
+7. Leave application-specific conflicts for manual resolution; it must never merge generated pull requests automatically.
 
-The update workflow/script is intentionally planned rather than enabled in this foundation. It must use least-privilege GitHub permissions and must not merge generated pull requests automatically.
+The workflow requires GitHub Actions to be allowed to create pull requests in the derived repository. It is skipped when running in the canonical template repository itself.
 
 ## Compatibility policy
 

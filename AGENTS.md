@@ -58,6 +58,12 @@ The template lifecycle validation also checks required files and metadata:
 ./scripts/validate-template.sh
 ```
 
+Template update scripts must also pass shell syntax validation:
+
+```bash
+bash -n scripts/setup.sh scripts/template-update.sh
+```
+
 ## Git and review
 
 - Inspect `git status`, remotes, branch, and diffs before modifying or staging files.
