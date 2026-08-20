@@ -23,8 +23,8 @@ The update workflow/script is intentionally planned rather than enabled in this 
 
 ## Post-merge repository checklist
 
-After this backend PR and the separate frontend PR are reviewed and merged:
+After the backend and separate frontend PRs are reviewed and merged:
 
-- [ ] Mark `ThatSoftwareCompany/template-go-api` as a GitHub Template Repository in `Settings -> General -> Template repository`.
+- [x] Mark `ThatSoftwareCompany/template-go-api` as a GitHub Template Repository in `Settings -> General -> Template repository`.
 - [ ] Mark the frontend template repository as a GitHub Template Repository in `Settings -> General -> Template repository`.
 - [ ] Confirm that template generation preserves the manifest and setup-script behavior.
