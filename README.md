@@ -70,11 +70,14 @@ routes -> controller -> service -> repository/client
 
 - `internal/modules/health` owns health transport and readiness rules.
 - `internal/modules/errors` prepares the future internal error use case.
+- `internal/app/routes.go` is the application-owned extension point for registering product modules.
 - `internal/platform` owns configuration, HTTP, logging, PostgreSQL, migrations, and safe error storage.
 - `repository` is reserved for persistence.
 - `client` is reserved for external APIs.
 - Public routes are versioned with `/api/v1`.
 - OpenAPI files live in `docs/openapi/` and are separate from controllers.
+
+The template owns the operational composition in `cmd/api`, including `/__ping` and `/api/v1/health`. A generated project must not add product routes to those files or to `internal/modules/health`. Add product modules under `internal/modules/<business-module>/` and register them from `internal/app/routes.go`; the template updater preserves that extension point.
 
 ## Security
 

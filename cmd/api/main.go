@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/ThatSoftwareCompany/template-go-api/internal/app"
 	"github.com/ThatSoftwareCompany/template-go-api/internal/modules/health"
 	"github.com/ThatSoftwareCompany/template-go-api/internal/platform/config"
 	"github.com/ThatSoftwareCompany/template-go-api/internal/platform/db"
@@ -74,6 +75,13 @@ func run(cfg config.Config, logger *slog.Logger) error {
 		healthPinger = pool
 	}
 	health.RegisterRoutes(server.Mux, health.NewService(healthPinger, cfg.Database.HealthTimeout))
+	// Template-managed operational routes are registered above. Application-owned
+	// routes belong in internal/app/routes.go to keep template updates isolated.
+	app.RegisterRoutes(server.Mux, app.Dependencies{
+		Database:   pool,
+		ErrorStore: store,
+		Logger:     logger,
+	})
 
 	serverErrors := make(chan error, 1)
 	go func() {
