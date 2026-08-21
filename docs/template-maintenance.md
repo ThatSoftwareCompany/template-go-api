@@ -30,7 +30,20 @@ If a generated repository contains its own Git commit in `template_commit`, the 
 
 The workflow requires GitHub Actions to be allowed to create pull requests in the derived repository. It is skipped when running in the canonical template repository itself.
 
-### Workflow update token
+## Derived repository onboarding checklist
+
+Complete this checklist after generating a repository from the template and before running the scheduled or manual update workflow:
+
+- [ ] Create a dedicated fine-grained personal access token or GitHub App installation token scoped to the derived repository.
+- [ ] Grant Contents: Read and write, Workflows: Read and write, and Pull requests: Read and write.
+- [ ] Add the token as the repository Actions secret `TEMPLATE_UPDATE_TOKEN` under `Settings -> Secrets and variables -> Actions`.
+- [ ] In `Settings -> Actions -> General`, enable read and write workflow permissions.
+- [ ] Enable GitHub Actions pull request creation if the organization policy exposes that option.
+- [ ] Run the workflow manually and verify that it creates an update branch and pull request.
+
+The template cannot complete updates that modify `.github/workflows` with only the built-in `GITHUB_TOKEN`. Configure `TEMPLATE_UPDATE_TOKEN` before the first update to avoid a push error related to missing `workflows` permission.
+
+### Workflow update token details
 
 The built-in `GITHUB_TOKEN` can create branches and pull requests, but GitHub rejects pushes that create or modify files under `.github/workflows` unless the token has the special Workflows repository permission. Each derived repository should configure an Actions repository secret named `TEMPLATE_UPDATE_TOKEN` before enabling automatic template updates.
 
@@ -41,6 +54,8 @@ Use a dedicated fine-grained personal access token or GitHub App installation to
 - Pull requests: Read and write
 
 The workflow falls back to `GITHUB_TOKEN` when the secret is absent, which is sufficient only for updates that do not modify workflow files. Never commit the token or place it in `.env` files.
+
+If a generated repository already contains a manual token edit and the update reports a conflict in `.github/workflows/template-update.yml`, resolve the file by keeping the latest template detection/provenance logic and the `TEMPLATE_UPDATE_TOKEN` checkout and `GH_TOKEN` settings. Run `go test ./...`, `go vet ./...`, and `git diff --check` before committing the resolved update.
 
 ## Compatibility policy
 
