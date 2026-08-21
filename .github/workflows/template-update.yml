@@ -22,6 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.TEMPLATE_UPDATE_TOKEN || github.token }}
 
       - name: Set up Go
         uses: actions/setup-go@v5
@@ -131,7 +132,7 @@ jobs:
       - name: Open update pull request
         if: (steps.template.outputs.update_required == 'true' || steps.template.outputs.provenance_repair == 'true') && steps.update.outputs.branch != ''
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.TEMPLATE_UPDATE_TOKEN || github.token }}
           BRANCH: ${{ steps.update.outputs.branch }}
           LATEST_VERSION: ${{ steps.template.outputs.latest_version }}
           LATEST_COMMIT: ${{ steps.template.outputs.latest_commit }}

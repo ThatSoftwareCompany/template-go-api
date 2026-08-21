@@ -133,6 +133,8 @@ The generated repository also includes a scheduled and manually dispatchable tem
 
 If an older generated project recorded its own repository commit instead of the template commit, the workflow resolves provenance from the matching release tag and opens a small repair pull request automatically.
 
+Before enabling updates that may change `.github/workflows`, create an Actions repository secret named `TEMPLATE_UPDATE_TOKEN` in the generated repository. Use a dedicated fine-grained personal access token or GitHub App installation token with Contents, Workflows, and Pull requests read/write permissions scoped to that repository. The workflow uses this secret for Git operations and falls back to `GITHUB_TOKEN` only when the secret is absent. Never commit this token or place it in `.env` files.
+
 The template maintainer must publish version tags such as `v0.1.0` before derived repositories can detect releases. The initial release tag should point to the merged template commit.
 
 ## Planned phases
