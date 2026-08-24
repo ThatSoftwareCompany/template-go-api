@@ -6,6 +6,7 @@ script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd -- "${script_dir}/.." && pwd)
 temporary=$(mktemp -d /tmp/tsc-template-lifecycle.XXXXXX)
 trap 'rm -rf -- "$temporary"' EXIT
+source_repository="$repo_root"
 
 for command in git go jq perl tar; do
 	if ! command -v "$command" >/dev/null 2>&1; then
@@ -14,15 +15,21 @@ for command in git go jq perl tar; do
 	fi
 done
 
-v022=$(git -C "$repo_root" rev-parse v0.2.2^{commit})
-v023=$(git -C "$repo_root" rev-parse v0.2.3^{commit})
-v024=$(git -C "$repo_root" rev-parse v0.2.4^{commit})
+if ! git -C "$source_repository" rev-parse v0.2.2^{commit} >/dev/null 2>&1; then
+	template_source=$(jq -er '.template_source' "$repo_root/.template/manifest.json")
+	source_repository="${temporary}/template-source"
+	git clone -q "https://github.com/${template_source}.git" "$source_repository"
+fi
+
+v022=$(git -C "$source_repository" rev-parse v0.2.2^{commit})
+v023=$(git -C "$source_repository" rev-parse v0.2.3^{commit})
+v024=$(git -C "$source_repository" rev-parse v0.2.4^{commit})
 
 extract_tag() {
 	local tag=$1
 	local destination=$2
 	mkdir -p "$destination"
-	git -C "$repo_root" archive "$tag" | tar -x -C "$destination"
+	git -C "$source_repository" archive "$tag" | tar -x -C "$destination"
 }
 
 initialize_repository() {
@@ -129,7 +136,7 @@ run_update_test() {
 
 	"$repo_root/scripts/template-update.sh" \
 		--project-root "$directory" \
-		--template-repository "$repo_root" \
+		--template-repository "$source_repository" \
 		--from-commit "$v023" \
 		--to-commit "$v024"
 
@@ -153,7 +160,7 @@ run_legacy_bootstrap_test() {
 
 	"$repo_root/scripts/template-update.sh" \
 		--project-root "$directory" \
-		--template-repository "$repo_root" \
+		--template-repository "$source_repository" \
 		--from-commit "$v022" \
 		--to-commit "$v023"
 
@@ -194,7 +201,7 @@ expect_update_rejection() {
 
 run_incompatible_update_test() {
 	local source_directory="${temporary}/incompatible-source"
-	git clone -q --no-hardlinks "$repo_root" "$source_directory"
+	git clone -q --no-hardlinks "$source_repository" "$source_directory"
 	git -C "$source_directory" checkout -q --detach v0.2.4
 	sed -i 's/"postgresql": "16+"/"postgresql": "15+"/' "$source_directory/.template/manifest.json"
 	git -C "$source_directory" add .template/manifest.json
@@ -204,7 +211,7 @@ run_incompatible_update_test() {
 
 run_deletion_update_test() {
 	local source_directory="${temporary}/deleting-source"
-	git clone -q --no-hardlinks "$repo_root" "$source_directory"
+	git clone -q --no-hardlinks "$source_repository" "$source_directory"
 	git -C "$source_directory" checkout -q --detach v0.2.4
 	git -C "$source_directory" rm -q README.md
 	git -C "$source_directory" commit -qm "test: delete a template file"
