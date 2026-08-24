@@ -8,7 +8,7 @@ temporary=$(mktemp -d /tmp/tsc-template-lifecycle.XXXXXX)
 trap 'rm -rf -- "$temporary"' EXIT
 source_repository="$repo_root"
 
-for command in git go jq perl tar; do
+for command in git go grep jq perl sed tar; do
 	if ! command -v "$command" >/dev/null 2>&1; then
 		echo "required command is missing: ${command}" >&2
 		exit 1
@@ -162,7 +162,7 @@ run_update_test() {
 	grep -Fq 'application-owned test route marker' "$directory/internal/app/routes.go"
 	jq -e '.template_version == "0.2.5" and .template_commit == "'"$v025"'"' \
 		"$directory/.template/manifest.json" >/dev/null
-	if rg -n "$source_module_path" --glob '*.go' --glob 'go.mod' "$directory"; then
+	if grep -RInF --exclude-dir=.git --include='*.go' --include='go.mod' "$source_module_path" "$directory"; then
 		echo "derived repository retains canonical Go module imports" >&2
 		exit 1
 	fi
@@ -189,7 +189,7 @@ run_legacy_bootstrap_test() {
 
 	test -f "$directory/internal/app/routes.go"
 	grep -Fq 'github.com/example/legacy-derived/internal/platform/errstore' "$directory/internal/app/routes.go"
-	if rg -n "$source_module_path" --glob '*.go' --glob 'go.mod' "$directory"; then
+	if grep -RInF --exclude-dir=.git --include='*.go' --include='go.mod' "$source_module_path" "$directory"; then
 		echo "legacy derived repository retains canonical Go module imports" >&2
 		exit 1
 	fi
@@ -229,6 +229,8 @@ expect_update_rejection() {
 run_incompatible_update_test() {
 	local source_directory="${temporary}/incompatible-source"
 	git clone -q --no-hardlinks "$source_repository" "$source_directory"
+	git -C "$source_directory" config user.name "Template lifecycle test"
+	git -C "$source_directory" config user.email "template-lifecycle@example.invalid"
 	git -C "$source_directory" checkout -q --detach v0.2.4
 	sed -i 's/"postgresql": "16+"/"postgresql": "15+"/' "$source_directory/.template/manifest.json"
 	git -C "$source_directory" add .template/manifest.json
@@ -239,6 +241,8 @@ run_incompatible_update_test() {
 run_deletion_update_test() {
 	local source_directory="${temporary}/deleting-source"
 	git clone -q --no-hardlinks "$source_repository" "$source_directory"
+	git -C "$source_directory" config user.name "Template lifecycle test"
+	git -C "$source_directory" config user.email "template-lifecycle@example.invalid"
 	git -C "$source_directory" checkout -q --detach v0.2.4
 	git -C "$source_directory" rm -q README.md
 	git -C "$source_directory" commit -qm "test: delete a template file"
