@@ -12,6 +12,8 @@ Every release must have a version tag, a release note under `docs/releases/`, an
 
 - `0.2.3`: onboarding, ownership rules, `internal/app/routes.go`, AI guidance, and derived-repository update documentation.
 - `0.2.4`: update lifecycle and module-path/provenance hotfixes.
+- `0.2.5`: foundation hardening, PostgreSQL integration, Docker smoke tests, setup idempotency, and lifecycle coverage.
+- `0.2.6`: lifecycle module-normalization hotfix and legacy bridge coverage.
 
 ## `0.2.5` — foundation hardening
 

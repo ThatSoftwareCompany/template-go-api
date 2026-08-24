@@ -24,6 +24,18 @@ fi
 v022=$(git -C "$source_repository" rev-parse v0.2.2^{commit})
 v023=$(git -C "$source_repository" rev-parse v0.2.3^{commit})
 v024=$(git -C "$source_repository" rev-parse v0.2.4^{commit})
+v025=$(git -C "$source_repository" rev-parse v0.2.5^{commit})
+source_module_path=$(awk '$1 == "module" { print $2; exit }' "$source_repository/go.mod")
+if [[ -z "$source_module_path" ]]; then
+	echo "unable to resolve the source Go module path" >&2
+	exit 1
+fi
+
+escape_sed_replacement() {
+	printf '%s' "$1" | sed 's/[\\&|]/\\&/g'
+}
+
+escaped_source_module_path=$(escape_sed_replacement "$source_module_path")
 
 extract_tag() {
 	local tag=$1
@@ -128,7 +140,7 @@ run_update_test() {
 
 	go -C "$directory" mod edit -module github.com/example/update-derived
 	find "$directory" -type f -name '*.go' -print0 | while IFS= read -r -d '' file; do
-		sed -i 's|github.com/ThatSoftwareCompany/template-go-api|github.com/example/update-derived|g' "$file"
+		sed -i "s|${escaped_source_module_path}|github.com/example/update-derived|g" "$file"
 	done
 	perl -0pi -e 's/func RegisterRoutes\(_ \*http\.ServeMux, _ Dependencies\) \{/func RegisterRoutes(mux *http.ServeMux, deps Dependencies) {\n\t_ = mux\n\t_ = deps\n\t\/\/ application-owned test route marker/' "$directory/internal/app/routes.go"
 	git -C "$directory" add .
@@ -139,10 +151,21 @@ run_update_test() {
 		--template-repository "$source_repository" \
 		--from-commit "$v023" \
 		--to-commit "$v024"
+	git -C "$directory" add .
+	git -C "$directory" commit -qm "test: merge v0.2.4 bridge update"
+	"$repo_root/scripts/template-update.sh" \
+		--project-root "$directory" \
+		--template-repository "$source_repository" \
+		--from-commit "$v024" \
+		--to-commit "$v025"
 
 	grep -Fq 'application-owned test route marker' "$directory/internal/app/routes.go"
-	jq -e '.template_version == "0.2.4" and .template_commit == "'"$v024"'"' \
+	jq -e '.template_version == "0.2.5" and .template_commit == "'"$v025"'"' \
 		"$directory/.template/manifest.json" >/dev/null
+	if rg -n "$source_module_path" --glob '*.go' --glob 'go.mod' "$directory"; then
+		echo "derived repository retains canonical Go module imports" >&2
+		exit 1
+	fi
 	GOCACHE="${temporary}/update-cache" go -C "$directory" test ./...
 }
 
@@ -153,7 +176,7 @@ run_legacy_bootstrap_test() {
 
 	go -C "$directory" mod edit -module github.com/example/legacy-derived
 	find "$directory" -type f -name '*.go' -print0 | while IFS= read -r -d '' file; do
-		sed -i 's|github.com/ThatSoftwareCompany/template-go-api|github.com/example/legacy-derived|g' "$file"
+		sed -i "s|${escaped_source_module_path}|github.com/example/legacy-derived|g" "$file"
 	done
 	git -C "$directory" add .
 	git -C "$directory" commit -qm "test: customize legacy repository module"
@@ -166,6 +189,10 @@ run_legacy_bootstrap_test() {
 
 	test -f "$directory/internal/app/routes.go"
 	grep -Fq 'github.com/example/legacy-derived/internal/platform/errstore' "$directory/internal/app/routes.go"
+	if rg -n "$source_module_path" --glob '*.go' --glob 'go.mod' "$directory"; then
+		echo "legacy derived repository retains canonical Go module imports" >&2
+		exit 1
+	fi
 	GOCACHE="${temporary}/legacy-cache" go -C "$directory" test ./...
 }
 
