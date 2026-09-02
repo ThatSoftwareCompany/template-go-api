@@ -14,10 +14,11 @@ Every release must have a version tag, a release note under `docs/releases/`, an
 - `0.2.4`: update lifecycle and module-path/provenance hotfixes.
 - `0.2.5`: foundation hardening, PostgreSQL integration, Docker smoke tests, setup idempotency, and lifecycle coverage.
 - `0.2.6`: lifecycle module-normalization hotfix and legacy bridge coverage.
+- `0.2.7`: corrected publication of the lifecycle hotfix, including self-contained lifecycle fixtures and legacy update validation.
 
-## `0.2.5` — foundation hardening
+## Foundation hardening — shipped in `0.2.5`
 
-This is the current implementation scope. It closes the foundation quality gap without introducing authentication or other feature-level breaking changes.
+This release closed the foundation quality gap without introducing authentication or other feature-level breaking changes.
 
 - Expand unit and HTTP coverage for configuration, middleware, error responses, CORS, security headers, logging behavior, and panic recovery.
 - Run PostgreSQL integration tests for pool initialization, migrations, safe error persistence, filters, limits, idempotency, and unavailable-database failures.
@@ -28,6 +29,16 @@ This is the current implementation scope. It closes the foundation quality gap w
 - Keep the coverage goal behavioral: critical branches and operational scenarios must be exercised; an arbitrary 100% line threshold is not required.
 
 Acceptance criteria: the complete foundation/lifecycle matrix passes locally and in CI, the updater preserves application-owned routes, Docker smoke tests pass, and the generated repository can run both with and without PostgreSQL.
+
+## `0.2.7` — corrected lifecycle release
+
+The original `v0.2.6` tag was created before the lifecycle hotfix was merged and points to the previous foundation commit. It is retained for immutability. `v0.2.7` is the corrected release and the recommended update target.
+
+- Include the merged module-normalization and legacy bridge fixes in a published release.
+- Keep lifecycle fixtures independent of optional developer tools and global Git identity configuration.
+- Preserve custom Go module paths and application-owned routes during derived-repository updates.
+
+Acceptance criteria: `v0.2.7` points to the merged lifecycle fix, the template CI passes, and `testing-template` updates from `v0.2.4` through a reviewed automatic pull request.
 
 ## `0.3.0` — authentication and authorization
 
