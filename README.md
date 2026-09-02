@@ -166,7 +166,7 @@ The template maintainer must publish version tags such as `v0.1.0` before derive
 
 ## Planned phases
 
-The current foundation release is `0.2.6`, which includes the `0.2.5` hardening work plus lifecycle module-normalization and legacy bridge fixes. The next planned releases are:
+The current foundation release is `0.2.8`, which includes the `0.2.5` hardening work plus lifecycle module-normalization and legacy bridge fixes. The immutable `v0.2.6` and `v0.2.7` tags were created before the release metadata was finalized; new generated repositories should use `v0.2.8`. The next planned releases are:
 
 - `0.3.0`: administrated login, Argon2id, Ed25519/EdDSA JWTs, approximately 15-minute access tokens, 30-day rotating/revocable refresh tokens, HttpOnly cookies, environment-specific Secure and SameSite policies, CSRF protection, authentication/authorization middleware, and authorized access to `/api/v1/internal/errors?endpoint=<path>`.
 - `0.4.0`: Dependabot, dependency review, `govulncheck`, Docker image scanning, strict `go.sum` checks, full-SHA Actions pinning, release notes, and safer updater conflict reporting.

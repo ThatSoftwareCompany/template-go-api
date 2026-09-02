@@ -14,6 +14,8 @@ Every release must have a version tag, a release note under `docs/releases/`, an
 - `0.2.4`: update lifecycle and module-path/provenance hotfixes.
 - `0.2.5`: foundation hardening, PostgreSQL integration, Docker smoke tests, setup idempotency, and lifecycle coverage.
 - `0.2.6`: lifecycle module-normalization hotfix and legacy bridge coverage.
+- `0.2.7`: lifecycle fix commit published before the release metadata preparation was completed; retained as an immutable historical tag.
+- `0.2.8`: corrected publication of the lifecycle hotfix with consistent version metadata.
 
 ## `0.2.5` — foundation hardening
 
@@ -28,6 +30,16 @@ This is the current implementation scope. It closes the foundation quality gap w
 - Keep the coverage goal behavioral: critical branches and operational scenarios must be exercised; an arbitrary 100% line threshold is not required.
 
 Acceptance criteria: the complete foundation/lifecycle matrix passes locally and in CI, the updater preserves application-owned routes, Docker smoke tests pass, and the generated repository can run both with and without PostgreSQL.
+
+## `0.2.8` — corrected lifecycle release
+
+The `v0.2.7` tag points to the merged lifecycle fix, but it was created before the release metadata preparation was completed and therefore contains `template_version: 0.2.6`. It is retained unchanged. `v0.2.8` is the corrected release and the recommended update target.
+
+- Publish consistent manifest and release-note metadata for the lifecycle fix.
+- Keep lifecycle fixtures independent of optional developer tools and global Git identity configuration.
+- Preserve custom Go module paths and application-owned routes during derived-repository updates.
+
+Acceptance criteria: `v0.2.8` points to the corrected release commit, template CI passes, and `testing-template` updates from its current `v0.2.6` state through a reviewed automatic pull request.
 
 ## `0.3.0` — authentication and authorization
 
