@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/ThatSoftwareCompany/template-go-api/internal/modules/auth"
 	"github.com/ThatSoftwareCompany/template-go-api/internal/platform/errstore"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,6 +16,7 @@ type Dependencies struct {
 	Database   *pgxpool.Pool
 	ErrorStore errstore.Store
 	Logger     *slog.Logger
+	Auth       *auth.Service // nil when DATABASE_ENABLED=false.
 }
 
 // RegisterRoutes is the application-owned route composition point.
