@@ -19,7 +19,7 @@ The manifest is the source of truth for the template identity, version, source r
 The derived-repository workflow performs these steps:
 
 1. Detect the newest `vMAJOR.MINOR.PATCH` tag from `ThatSoftwareCompany/template-go-api`.
-2. Compare the generated repository's recorded `template_commit` and compatibility fields.
+2. Compare the generated repository's recorded `template_commit` and compatibility fields. The workflow uses a valid recorded source commit first and falls back to the version tag only when the recorded commit cannot be resolved in the template repository.
 3. Apply a three-way patch from the recorded commit to the tagged commit.
 4. Normalize the canonical Go module path to the generated repository's module path before applying source changes.
 5. Refuse incompatible Go/PostgreSQL changes and template file deletions.
