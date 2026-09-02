@@ -159,6 +159,9 @@ jobs:
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_password
           POSTGRES_DB: test_db
+          AUTH_PRIVATE_KEY_FILE: ${{ runner.temp }}/auth-keys/private.pem
+          AUTH_PUBLIC_KEY_FILE: ${{ runner.temp }}/auth-keys/public.pem
+          AUTH_CSRF_SECRET: cleanup-only-placeholder
         run: docker compose down -v
 
       - name: Smoke test production image without PostgreSQL
