@@ -85,6 +85,7 @@ routes -> controller -> service -> repository/client
 - `internal/modules/auth` owns administrator provisioning, password hashing, session tokens, CSRF, and authorization middleware.
 - `internal/modules/errors` owns safe error listing behind authentication and `errors:read` authorization.
 - `internal/app/routes.go` is the application-owned extension point for registering product modules.
+- `app.Dependencies.Auth` exposes the template authentication service so product routes can compose `auth.RequireRole` and `auth.RequirePermission` without duplicating token or cookie handling.
 - `internal/platform` owns configuration, HTTP, logging, PostgreSQL, migrations, and safe error storage.
 - `repository` is reserved for persistence.
 - `client` is reserved for external APIs.
@@ -92,6 +93,16 @@ routes -> controller -> service -> repository/client
 - OpenAPI files live in `docs/openapi/` and are separate from controllers.
 
 The template owns the operational composition in `cmd/api`, including `/__ping` and `/api/v1/health`. A generated project must not add product routes to those files or to `internal/modules/health`. Add product modules under `internal/modules/<business-module>/` and register them from `internal/app/routes.go`; the template updater preserves that extension point.
+
+Product endpoints that require authorization should wrap their handlers with the template middleware and explicit permissions. Roles are an additional boundary, not an implicit permission grant:
+
+```go
+next := http.HandlerFunc(controller.HandleList)
+handler := auth.RequirePermission(dependencies.Auth, "orders:read", next)
+handler = auth.RequireRole(dependencies.Auth, "support_agent", handler)
+```
+
+Unauthenticated requests receive `401`; authenticated requests without the required role or permission receive `403`. Keep the authorization decision in the module composition and leave the template-managed auth module unchanged.
 
 ## Security
 

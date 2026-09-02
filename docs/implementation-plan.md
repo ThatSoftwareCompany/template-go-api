@@ -89,7 +89,11 @@ There is no public registration, password recovery, or Google OAuth in this rele
 - PEM-mounted Ed25519 keys use `AUTH_PRIVATE_KEY_FILE`, `AUTH_PUBLIC_KEY_FILE`, `AUTH_KEY_ID`, `AUTH_JWT_ISSUER`, and `AUTH_JWT_AUDIENCE`; signed CSRF tokens use `AUTH_CSRF_SECRET`. `AUTH_ACCESS_TOKEN_TTL` defaults to `15m` and `AUTH_REFRESH_TOKEN_TTL` defaults to `720h`, constrained to 7–30 days.
 - Authorization is deny-by-default. The internal error endpoint requires the explicit `errors:read` permission.
 
-Implementation acceptance criteria: the auth module is isolated under `internal/modules/auth`; database-backed startup fails fast for missing or invalid auth configuration; database-disabled startup remains available with auth endpoints returning `503`; the admin CLI creates the initial user and grants only the explicit `internal_admin` role and `errors:read` permission; all session tokens remain in HttpOnly cookies; and unit, HTTP, and PostgreSQL integration coverage exercises the security contract.
+Implementation acceptance criteria: the auth module is isolated under `internal/modules/auth`; database-backed startup fails fast for missing or invalid auth configuration; database-disabled startup remains available with auth endpoints returning `503`; the admin CLI creates the initial user and grants only the explicit `internal_admin` role and `errors:read` permission; all session tokens remain in HttpOnly cookies; application-owned routes can consume `app.Dependencies.Auth` and compose explicit role and permission guards; and unit, HTTP, and PostgreSQL integration coverage exercises the security contract.
+
+### Clean-room authentication validation
+
+`testing-templatev2` is the clean-room fixture for the generated-project flow. It owns a single `internal/modules/example` business module and registers `GET /api/v1/example` only from `internal/app/routes.go`. The endpoint requires both `example_reader` and `example:read`; the fixture administrator is intentionally denied while the product reader is allowed. The fixture validation must cover no session (`401`), an authenticated user without the role or permission (`403`), an authorized user (`200`), CSRF failures, generic login failures, refresh rotation and reuse detection, family revocation, logout, `/me`, protected internal errors, rate limiting, PostgreSQL integration, and `DATABASE_ENABLED=false` startup. This product route and its OpenAPI contract must remain outside the canonical template.
 
 ## `0.4.0` — supply-chain security and lifecycle
 

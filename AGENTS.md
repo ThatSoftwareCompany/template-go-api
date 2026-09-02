@@ -18,6 +18,7 @@ This repository is the canonical backend template for That Software Company. It 
 - `cmd/api` composes configuration, platform services, modules, and graceful shutdown.
 - `cmd/auth` provides the interactive administrator provisioning command.
 - `internal/app/routes.go` is the application-owned route composition extension point.
+- `app.Dependencies.Auth` exposes the template auth service for protected product routes; use `auth.RequireRole` and `auth.RequirePermission` explicitly.
 - `cmd/migrate` is the explicit SQL migration CLI.
 - `internal/modules/<module>` contains module transport and business responsibilities.
 - `internal/modules/auth` owns authentication, authorization middleware, token and CSRF rules, and its persistence boundary.
@@ -54,6 +55,7 @@ The exception is intentional maintenance of the canonical template itself, inclu
 - CORS must use an explicit origin allowlist. Never emit `Access-Control-Allow-Origin: *` when credentials are enabled.
 - Authentication uses Argon2id passwords, Ed25519/EdDSA access JWTs, opaque hashed rotating refresh tokens, HttpOnly cookies, and signed double-submit CSRF tokens. Do not introduce token storage in browser storage or return tokens in JSON.
 - Authorization is deny-by-default. Do not bypass `RequireAuthentication` or `RequirePermission`, and do not grant permissions implicitly through a role name.
+- Product routes may require both an explicit role and permission; an authenticated user without either boundary must receive `403`.
 - The internal error listing endpoint must remain protected by the explicit `errors:read` permission.
 
 ## Validation commands
