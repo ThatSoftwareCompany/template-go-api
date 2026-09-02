@@ -16,6 +16,7 @@ Every release must have a version tag, a release note under `docs/releases/`, an
 - `0.2.6`: lifecycle module-normalization hotfix and legacy bridge coverage.
 - `0.2.7`: lifecycle fix commit published before the release metadata preparation was completed; retained as an immutable historical tag.
 - `0.2.8`: corrected publication of the lifecycle hotfix with consistent version metadata.
+- `0.2.9`: provenance detection hotfix for derived repositories whose recorded source commit differs from an immutable historical tag.
 
 ## `0.2.5` — foundation hardening
 
@@ -40,6 +41,16 @@ The `v0.2.7` tag points to the merged lifecycle fix, but it was created before t
 - Preserve custom Go module paths and application-owned routes during derived-repository updates.
 
 Acceptance criteria: `v0.2.8` points to the corrected release commit, template CI passes, and `testing-template` updates from its current `v0.2.6` state through a reviewed automatic pull request.
+
+## `0.2.9` — provenance detection hotfix
+
+The lifecycle workflow now prefers a valid `template_commit` that can be resolved in the source repository and falls back to the version tag only when the recorded commit is unavailable. This prevents an immutable historical tag from replaying changes that are already present in a derived repository.
+
+- Publish the workflow correction as a release instead of relying on an untagged `main` commit.
+- Document the one-time workflow bootstrap required by repositories that already applied the lifecycle fix with the older detector.
+- Keep the update path reviewed, explicit, and free of force-pushed tags.
+
+Acceptance criteria: `v0.2.9` includes the corrected workflow, the source CI passes, and `testing-template` can update from its recorded `55e61fb` source commit without replaying the old `v0.2.6` tag diff.
 
 ## `0.3.0` — authentication and authorization
 
