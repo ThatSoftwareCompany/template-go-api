@@ -1,7 +1,7 @@
 {
   "template_id": "template-go-api",
   "template_source": "ThatSoftwareCompany/template-go-api",
-  "template_version": "0.2.10",
+  "template_version": "0.3.0",
   "template_commit": "",
   "generated_from": "",
   "repository": "ThatSoftwareCompany/template-go-api",
@@ -12,8 +12,11 @@
   "architecture": "modular-mvc",
   "supported_environments": ["development", "test", "production"],
   "dependency_versions": {
+    "github.com/golang-jwt/jwt/v5": "v5.3.1",
     "github.com/golang-migrate/migrate/v4": "v4.19.1",
-    "github.com/jackc/pgx/v5": "v5.8.0"
+    "github.com/jackc/pgx/v5": "v5.8.0",
+    "golang.org/x/crypto": "v0.55.0",
+    "golang.org/x/term": "v0.45.0"
   },
   "compatibility": {
     "go": "1.26.0",
