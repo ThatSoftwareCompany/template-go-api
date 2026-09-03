@@ -194,13 +194,22 @@ The template maintainer must publish version tags such as `v0.1.0` before derive
 
 ## Release roadmap
 
-The current release is `0.3.0`, which adds cookie-based authentication, authorization, CSRF protection, rotating refresh tokens, the protected internal error endpoint, and the administrator provisioning CLI. The immutable `v0.2.6`, `v0.2.7`, and `v0.2.8` tags remain historical; new generated repositories should use the latest release tag. The next planned releases are:
+The current release line is `0.4.0`. `v0.3.1` reconciles the protected application-route extension point that was merged after the original `v0.3.0` tag. `v0.4.0` adds supply-chain security and safer lifecycle automation. The immutable `v0.2.6`, `v0.2.7`, and `v0.2.8` tags remain historical; new generated repositories should use the latest release tag. The planned releases are:
 
-- `0.4.0`: Dependabot, dependency review, `govulncheck`, Docker image scanning, strict `go.sum` checks, full-SHA Actions pinning, release notes, and safer updater conflict reporting.
+- `0.3.1`: release metadata reconciliation for the post-`v0.3.0` protected application-route extension point.
+- `0.4.0`: Dependabot, dependency review, `govulncheck`, Docker image scanning, strict `go.sum` checks, full-SHA Actions pinning, release notes, security exceptions, ownership metadata, and safer updater conflict reporting.
 - `0.5.0`: provider-agnostic same-origin deployment contract and trusted reverse-proxy configuration.
 - `1.0.0`: final validation from a clean `testing-templatev2` repository.
 
 Public registration, password recovery, Google OAuth, frontend implementation, and cloud-provider-specific deployment are not part of the current backend template.
+
+### Supply-chain controls
+
+Dependabot groups weekly minor and patch updates for Go modules and GitHub Actions. Major updates remain separate for manual review. Dependency Review blocks high and critical dependency findings in pull requests. CI runs the pinned `govulncheck` version and Docker Scout against the locally built production image; fixable high and critical image findings block the workflow.
+
+All Actions are pinned to immutable commit SHAs. Keep the version comment when updating a pin so Dependabot can identify the intended release. `scripts/validate-action-pins.sh` rejects tags, branches, malformed SHAs, and pins without a human-readable version comment.
+
+`.github/security-exceptions.json` is empty by default. A temporary exception must identify one scanner finding and component exactly, include a reason, owner, GitHub issue, and future `expires_on` date. Expired, incomplete, wildcard, or unmatched exceptions fail validation. Exceptions never allow an unpinned Action.
 
 After review and merge, the backend and frontend repositories must be marked as GitHub Template Repositories from `Settings -> General -> Template repository`. This is a post-merge checklist item, not an automated repository mutation.
 
