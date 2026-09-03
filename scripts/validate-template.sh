@@ -10,7 +10,11 @@ required_files=(
   "AGENTS.md"
   ".env.example"
   ".template/manifest.json"
+  ".template/ownership.json"
+  ".github/dependabot.yml"
+  ".github/security-exceptions.json"
   ".github/workflows/template-update.yml"
+  ".github/workflows/dependency-review.yml"
   "internal/app/routes.go"
   "cmd/auth/main.go"
   "internal/modules/auth/controller.go"
@@ -27,6 +31,9 @@ required_files=(
   "migrations/000002_create_authentication.down.sql"
   "scripts/generate-dev-auth-keys.sh"
   "scripts/template-update.sh"
+  "scripts/validate-action-pins.sh"
+  "scripts/validate-security-exceptions.sh"
+  "scripts/check-security-exceptions.sh"
 )
 
 for relative_file in "${required_files[@]}"; do
@@ -53,6 +60,9 @@ if [[ -z "$template_version" || ! -f "${repo_root}/docs/releases/v${template_ver
 fi
 
 bash -n "${repo_root}"/scripts/*.sh
+
+(cd "$repo_root" && ./scripts/validate-action-pins.sh)
+(cd "$repo_root" && ./scripts/validate-security-exceptions.sh)
 
 go_cache=${GOCACHE:-}
 if [[ -z "$go_cache" || ! -d "$go_cache" || ! -w "$go_cache" ]]; then
