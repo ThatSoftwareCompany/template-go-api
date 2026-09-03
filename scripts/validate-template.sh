@@ -53,6 +53,22 @@ if [[ -e "${repo_root}/.env" ]]; then
   exit 1
 fi
 
+jq -e '
+  .schema_version == 1 and
+  ((.template_managed_paths | type) == "array") and
+  ((.application_owned_paths | type) == "array") and
+  all(.template_managed_paths[]; type == "string" and length > 0) and
+  all(.application_owned_paths[];
+    type == "string" and length > 0 and
+    (startswith("/") | not) and
+    (contains("..") | not) and
+    (contains("*") | not)
+  )
+' "${repo_root}/.template/ownership.json" >/dev/null || {
+  echo "template ownership metadata is invalid" >&2
+  exit 1
+}
+
 template_version=$(sed -n 's/^[[:space:]]*"template_version":[[:space:]]*"\([^"]*\)".*/\1/p' "${repo_root}/.template/manifest.json")
 if [[ -z "$template_version" || ! -f "${repo_root}/docs/releases/v${template_version}.md" ]]; then
   echo "release notes are missing for template version ${template_version:-unknown}" >&2

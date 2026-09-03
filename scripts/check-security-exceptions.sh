@@ -4,14 +4,14 @@ set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd -- "${script_dir}/.." && pwd)
-exceptions_file="${repo_root}/.github/security-exceptions.json"
+exceptions_file="${SECURITY_EXCEPTIONS_FILE:-${repo_root}/.github/security-exceptions.json}"
 scanner=""
 findings_file=""
 
 usage() {
   cat <<'EOF'
 Usage:
-  scripts/check-security-exceptions.sh --scanner NAME --findings-file PATH
+  scripts/check-security-exceptions.sh --scanner NAME --findings-file PATH [--exceptions-file PATH]
 
 The findings file must contain one exact finding per line:
   finding-id<TAB>component
@@ -28,6 +28,11 @@ while [[ $# -gt 0 ]]; do
     --findings-file)
       [[ $# -ge 2 ]] || { echo "--findings-file requires a value" >&2; exit 2; }
       findings_file=$2
+      shift 2
+      ;;
+    --exceptions-file)
+      [[ $# -ge 2 ]] || { echo "--exceptions-file requires a value" >&2; exit 2; }
+      exceptions_file=$2
       shift 2
       ;;
     -h|--help)

@@ -4,7 +4,25 @@ set -euo pipefail
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd -- "${script_dir}/.." && pwd)
-exceptions_file="${repo_root}/.github/security-exceptions.json"
+exceptions_file="${SECURITY_EXCEPTIONS_FILE:-${repo_root}/.github/security-exceptions.json}"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --exceptions-file)
+      [[ $# -ge 2 ]] || { echo "--exceptions-file requires a value" >&2; exit 2; }
+      exceptions_file=$2
+      shift 2
+      ;;
+    -h|--help)
+      echo "Usage: scripts/validate-security-exceptions.sh [--exceptions-file PATH]"
+      exit 0
+      ;;
+    *)
+      echo "unknown argument: $1" >&2
+      exit 2
+      ;;
+  esac
+done
 
 if [[ ! -e "$exceptions_file" ]]; then
   echo "no security exceptions file configured"

@@ -207,7 +207,9 @@ template_pathspecs=(
   ':(exclude).template/manifest.json'
 )
 for path in "${application_owned_paths[@]}"; do
-  template_pathspecs+=(":(exclude)${path}")
+  if [[ -e "${repo_root}/${path}" ]]; then
+    template_pathspecs+=(":(exclude)${path}")
+  fi
 done
 
 target_module_path=$(awk '$1 == "module" { print $2; exit }' "${repo_root}/go.mod")
@@ -267,6 +269,11 @@ write_report() {
     echo "## Release notes"
     if [[ -n "${release_notes[*]:-}" ]]; then
       printf '%s\n' "${release_notes[@]}"
+      for release_path in "${release_notes[@]}"; do
+        echo
+        echo "### ${release_path}"
+        sed -n '1,160p' "${source_dir}/${release_path}"
+      done
     else
       echo "No release notes changed."
     fi
