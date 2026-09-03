@@ -27,7 +27,20 @@ v024=$(git -C "$source_repository" rev-parse v0.2.4^{commit})
 v025=$(git -C "$source_repository" rev-parse v0.2.5^{commit})
 v027=$(git -C "$source_repository" rev-parse v0.2.7^{commit})
 v029=$(git -C "$source_repository" rev-parse v0.2.9^{commit})
-v031=$(git -C "$source_repository" rev-parse release/v0.3.1^{commit})
+resolve_manifest_revision() {
+	local version=$1
+	local commit
+	while IFS= read -r commit; do
+		if git -C "$source_repository" show "${commit}:.template/manifest.json" 2>/dev/null \
+			| jq -e --arg version "$version" '.template_version == $version' >/dev/null; then
+			printf '%s' "$commit"
+			return 0
+		fi
+	done < <(git -C "$source_repository" rev-list --all -- .template/manifest.json)
+	return 1
+}
+
+v031=$(git -C "$source_repository" rev-parse --verify v0.3.1^{commit} 2>/dev/null || resolve_manifest_revision "0.3.1")
 v040=$(git -C "$source_repository" rev-parse HEAD^{commit})
 source_module_path=$(awk '$1 == "module" { print $2; exit }' "$source_repository/go.mod")
 if [[ -z "$source_module_path" ]]; then
