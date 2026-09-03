@@ -126,13 +126,13 @@ jobs:
         run: test "$(docker image inspect tsc-template-go-api:production --format '{{.Config.User}}')" = "app"
 
       - name: Scan production image with Docker Scout
-        run: |
-          set -euo pipefail
-          command -v docker >/dev/null
-          docker scout cves local://tsc-template-go-api:production \
-            --only-severity high,critical \
-            --only-fixed \
-            --exit-code
+        uses: docker/scout-action@2688993af7bafd6ba8c6a74ec652442be91dd82b # v1.23.1
+        with:
+          command: cves
+          image: local://tsc-template-go-api:production
+          only-severities: high,critical
+          only-fixed: true
+          exit-code: true
 
       - name: Start Compose stack
         env:
