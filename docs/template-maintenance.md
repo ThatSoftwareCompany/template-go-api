@@ -66,7 +66,7 @@ The exception is maintenance of the canonical template itself. Template maintain
 
 ## Supply-chain maintenance
 
-Keep `.github/dependabot.yml` enabled for `gomod` and `github-actions`. Do not merge a major dependency update without reviewing compatibility and release notes. Dependency Review blocks high and critical findings; `govulncheck` blocks reachable Go vulnerabilities; Docker Scout evaluates the local production image and blocks fixable high and critical vulnerabilities. The CI scan requires `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` Actions secrets containing a read-only Docker Hub PAT; never put them in the repository or `.env`. The CI action-pin validator requires every external Action to use a full commit SHA and a release comment.
+Keep `.github/dependabot.yml` enabled for `gomod` and `github-actions`. Do not merge a major dependency update without reviewing compatibility and release notes. Dependency Review blocks high and critical findings; `govulncheck` blocks reachable Go vulnerabilities; Docker Scout evaluates the local production image and blocks fixable high and critical vulnerabilities. The CI scan requires `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD`, containing a read-only Docker Hub PAT. Configure both names as Actions secrets and as Dependabot secrets because Dependabot-triggered workflows cannot read Actions secrets; never put either value in the repository or `.env`. The CI action-pin validator requires every external Action to use a full commit SHA and a release comment. Workflow YAML is checked with `actionlint v1.7.12`.
 
 Security exceptions are a last-resort, temporary allowlist, not a permanent bypass. Add only exact scanner ID/component pairs to `.github/security-exceptions.json`, with a responsible owner, a tracking issue, a reason, and an expiry date. The file is validated on every run; expired entries and wildcards fail the build.
 
@@ -84,6 +84,7 @@ Complete this checklist after generating a repository from the template and befo
 - [ ] Grant Contents: Read and write, Workflows: Read and write, and Pull requests: Read and write.
 - [ ] Add the token as the repository Actions secret `TEMPLATE_UPDATE_TOKEN` under `Settings -> Secrets and variables -> Actions`.
 - [ ] Add `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` as Actions secrets using a dedicated read-only Docker Hub PAT for the production image scan.
+- [ ] Add `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` as Dependabot secrets with the same names for Dependabot pull requests.
 - [ ] In `Settings -> Actions -> General`, enable read and write workflow permissions.
 - [ ] Enable GitHub Actions pull request creation if the organization policy exposes that option.
 - [ ] Run the workflow manually and verify that it creates an update branch and pull request.

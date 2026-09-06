@@ -31,6 +31,8 @@ required_files=(
   "migrations/000002_create_authentication.down.sql"
   "scripts/generate-dev-auth-keys.sh"
   "scripts/template-update.sh"
+  "scripts/validate-manifest-dependencies.sh"
+  "scripts/validate-workflows.sh"
   "scripts/validate-action-pins.sh"
   "scripts/validate-security-exceptions.sh"
   "scripts/check-security-exceptions.sh"
@@ -79,10 +81,18 @@ bash -n "${repo_root}"/scripts/*.sh
 
 (cd "$repo_root" && ./scripts/validate-action-pins.sh)
 (cd "$repo_root" && ./scripts/validate-security-exceptions.sh)
+(cd "$repo_root" && ./scripts/validate-workflows.sh)
+(cd "$repo_root" && ./scripts/validate-manifest-dependencies.sh)
 
+temporary_go_cache=""
 go_cache=${GOCACHE:-}
 if [[ -z "$go_cache" || ! -d "$go_cache" || ! -w "$go_cache" ]]; then
-  go_cache=$(mktemp -d /tmp/tsc-template-go-cache.XXXXXX)
+  temporary_go_cache=$(mktemp -d /tmp/tsc-template-go-cache.XXXXXX)
+  go_cache="$temporary_go_cache"
+  cleanup() {
+    rm -rf -- "$temporary_go_cache"
+  }
+  trap cleanup EXIT
 fi
 
 (cd "$repo_root" && GOCACHE="$go_cache" go run ./cmd/template -command validate)

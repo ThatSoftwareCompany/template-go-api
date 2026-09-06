@@ -86,23 +86,33 @@ jobs:
           fi
 
           latest_version=${latest_tag#v}
-          echo "latest_tag=${latest_tag}" >> "$GITHUB_OUTPUT"
-          echo "latest_version=${latest_version}" >> "$GITHUB_OUTPUT"
-          echo "latest_commit=${latest_commit}" >> "$GITHUB_OUTPUT"
-          echo "current_commit=${current_commit}" >> "$GITHUB_OUTPUT"
+          {
+            echo "latest_tag=${latest_tag}"
+            echo "latest_version=${latest_version}"
+            echo "latest_commit=${latest_commit}"
+            echo "current_commit=${current_commit}"
+          } >> "$GITHUB_OUTPUT"
 
           if [[ "$current_commit" == "$latest_commit" ]]; then
-            echo "update_required=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "update_required=false"
+            } >> "$GITHUB_OUTPUT"
             if [[ "$recorded_commit" != "$current_commit" ]]; then
-              echo "provenance_repair=true" >> "$GITHUB_OUTPUT"
+              {
+                echo "provenance_repair=true"
+              } >> "$GITHUB_OUTPUT"
               echo "Derived repository content is current, but template provenance needs repair."
             else
-              echo "provenance_repair=false" >> "$GITHUB_OUTPUT"
+              {
+                echo "provenance_repair=false"
+              } >> "$GITHUB_OUTPUT"
               echo "Derived repository is already based on ${latest_tag}."
             fi
           else
-            echo "update_required=true" >> "$GITHUB_OUTPUT"
-            echo "provenance_repair=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "update_required=true"
+              echo "provenance_repair=false"
+            } >> "$GITHUB_OUTPUT"
             echo "Template update available: ${latest_tag} (${latest_commit})."
           fi
 
@@ -126,15 +136,15 @@ jobs:
               -command record-provenance \
               -template-version "$LATEST_VERSION" \
               -template-commit "$CURRENT_COMMIT"
-            cat > "$REPORT_FILE" <<EOF
-# Template update report
-
-- status: provenance-repair
-- from_commit: ${CURRENT_COMMIT}
-- to_commit: ${LATEST_COMMIT}
-- template_version: ${LATEST_VERSION}
-- breaking: false
-EOF
+            printf '%s\n' \
+              '# Template update report' \
+              '' \
+              '- status: provenance-repair' \
+              "- from_commit: ${CURRENT_COMMIT}" \
+              "- to_commit: ${LATEST_COMMIT}" \
+              "- template_version: ${LATEST_VERSION}" \
+              '- breaking: false' \
+              > "$REPORT_FILE"
           else
             ./scripts/template-update.sh \
               --template-repository "$TEMPLATE_REPOSITORY" \
@@ -156,9 +166,11 @@ EOF
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore: update template to ${LATEST_VERSION}"
           git push --set-upstream origin "$branch"
-          echo "branch=${branch}" >> "$GITHUB_OUTPUT"
           breaking=$(sed -n 's/^- breaking: \(true\|false\)$/\1/p' "$REPORT_FILE" | head -n 1)
-          echo "breaking=${breaking:-false}" >> "$GITHUB_OUTPUT"
+          {
+            echo "branch=${branch}"
+            echo "breaking=${breaking:-false}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Open update pull request
         if: (steps.template.outputs.update_required == 'true' || steps.template.outputs.provenance_repair == 'true') && steps.update.outputs.branch != ''

@@ -455,6 +455,69 @@ EOF
 	[[ "$status" -ne 0 ]] || { echo "unpinned action was unexpectedly accepted" >&2; exit 1; }
 }
 
+run_workflow_validation_test() {
+	local directory="${temporary}/workflow-validation"
+	mkdir -p "$directory/.github/workflows" "$directory/scripts"
+	cp "$repo_root/scripts/validate-workflows.sh" "$directory/scripts/validate-workflows.sh"
+
+	cat > "$directory/.github/workflows/valid.yml" <<'EOF'
+name: Valid workflow
+on: push
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: printf '%s\n' "workflow is valid"
+EOF
+	(
+		cd "$directory"
+		./scripts/validate-workflows.sh
+	)
+
+	cat > "$directory/.github/workflows/invalid.yml" <<'EOF'
+name: Invalid workflow
+on: push
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "valid block"
+    invalid: [
+EOF
+	set +e
+	(
+		cd "$directory"
+		./scripts/validate-workflows.sh
+	) >"${directory}.log" 2>&1
+	local status=$?
+	set -e
+	[[ "$status" -ne 0 ]] || { echo "invalid workflow was unexpectedly accepted" >&2; exit 1; }
+}
+
+run_manifest_dependency_validation_test() {
+	local directory="${temporary}/manifest-dependency-validation"
+	mkdir -p "$directory/.template" "$directory/scripts"
+	cp "$repo_root/scripts/validate-manifest-dependencies.sh" "$directory/scripts/validate-manifest-dependencies.sh"
+	cp "$repo_root/go.mod" "$directory/go.mod"
+	cp "$repo_root/go.sum" "$directory/go.sum"
+	jq '{dependency_versions: .dependency_versions}' \
+		"$repo_root/.template/manifest.json" > "$directory/.template/manifest.json"
+	(
+		cd "$directory"
+		./scripts/validate-manifest-dependencies.sh
+	)
+
+	sed -i 's/v5.10.0/v5.9.2/' "$directory/.template/manifest.json"
+	set +e
+	(
+		cd "$directory"
+		./scripts/validate-manifest-dependencies.sh
+	) >"${directory}.log" 2>&1
+	local status=$?
+	set -e
+	[[ "$status" -ne 0 ]] || { echo "stale manifest dependency was unexpectedly accepted" >&2; exit 1; }
+}
+
 run_security_exception_tests() {
 	local directory="${temporary}/security-exceptions"
 	local valid_file="${directory}/valid.json"
@@ -541,6 +604,8 @@ run_deletion_update_test
 run_v040_clean_room_update_test
 run_breaking_release_note_test
 run_action_pin_validation_test
+run_workflow_validation_test
+run_manifest_dependency_validation_test
 run_security_exception_tests
 
 echo "Template lifecycle tests passed."

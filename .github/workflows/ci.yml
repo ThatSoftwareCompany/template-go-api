@@ -39,6 +39,9 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Validate workflow syntax
+        run: ./scripts/validate-workflows.sh
+
       - name: Validate GitHub Action pins
         run: ./scripts/validate-action-pins.sh
 
@@ -163,11 +166,12 @@ jobs:
           mkdir -p "$auth_dir"
           openssl genpkey -algorithm Ed25519 -out "$auth_dir/private.pem" >/dev/null 2>&1
           openssl pkey -in "$auth_dir/private.pem" -pubout -out "$auth_dir/public.pem" >/dev/null 2>&1
-          export AUTH_PRIVATE_KEY_FILE="$auth_dir/private.pem"
-          export AUTH_PUBLIC_KEY_FILE="$auth_dir/public.pem"
-          export AUTH_CSRF_SECRET="$(openssl rand -hex 32)"
+          AUTH_PRIVATE_KEY_FILE="$auth_dir/private.pem"
+          AUTH_PUBLIC_KEY_FILE="$auth_dir/public.pem"
+          AUTH_CSRF_SECRET=$(openssl rand -hex 32)
+          export AUTH_PRIVATE_KEY_FILE AUTH_PUBLIC_KEY_FILE AUTH_CSRF_SECRET
           docker compose up --build -d
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:8080/__ping >/dev/null && \
               curl --fail --silent http://127.0.0.1:8080/api/v1/health >/dev/null; then
               csrf_status=$(curl --silent --show-error --output "$RUNNER_TEMP/auth-csrf.json" \
@@ -210,7 +214,7 @@ jobs:
             -e DATABASE_ENABLED=false \
             tsc-template-go-api:production
           trap 'docker rm -f tsc-template-go-api-production >/dev/null 2>&1 || true' EXIT
-          for attempt in $(seq 1 30); do
+          for _ in $(seq 1 30); do
             if curl --fail --silent http://127.0.0.1:18080/__ping >/dev/null && \
               curl --fail --silent http://127.0.0.1:18080/api/v1/health >/dev/null; then
               exit 0
