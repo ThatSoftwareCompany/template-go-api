@@ -15,7 +15,7 @@
     "actions/checkout": "v4.2.2",
     "actions/dependency-review-action": "v4.8.2",
     "actions/setup-go": "v5.5.0",
-    "docker/scout-action": "v1.23.1",
+    "docker/scout-cli": "v1.24.0@sha256:26dfe78a6cd88be9c5bd0b8c99409db8e85fdb076b8802d284218be8fbb092e6",
     "github.com/golang-jwt/jwt/v5": "v5.3.1",
     "github.com/golang-migrate/migrate/v4": "v4.19.1",
     "github.com/jackc/pgx/v5": "v5.9.2",

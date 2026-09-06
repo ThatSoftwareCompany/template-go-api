@@ -125,14 +125,21 @@ jobs:
       - name: Verify production image is non-root
         run: test "$(docker image inspect tsc-template-go-api:production --format '{{.Config.User}}')" = "app"
 
-      - name: Scan production image with Docker Scout
-        uses: docker/scout-action@2688993af7bafd6ba8c6a74ec652442be91dd82b # v1.23.1
-        with:
-          command: policy
-          image: local://tsc-template-go-api:production
-          policy-config: .github/docker-scout-policy.json
-          exit-code: true
-          write-comment: false
+      - name: Scan production image with Docker Scout policy
+        env:
+          DOCKER_SCOUT_CLI_IMAGE: docker/scout-cli@sha256:26dfe78a6cd88be9c5bd0b8c99409db8e85fdb076b8802d284218be8fbb092e6
+        run: |
+          set -euo pipefail
+          docker run --rm --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=512m \
+            --env HOME=/tmp \
+            --volume /var/run/docker.sock:/var/run/docker.sock \
+            --volume "$GITHUB_WORKSPACE:/workspace:ro" \
+            --workdir /workspace \
+            "$DOCKER_SCOUT_CLI_IMAGE" \
+            policy local://tsc-template-go-api:production \
+              --policy-config .github/docker-scout-policy.json \
+              --exit-code
 
       - name: Start Compose stack
         env:
