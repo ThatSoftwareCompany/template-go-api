@@ -1,0 +1,38 @@
+{
+  "policies": [
+    {
+      "name": "fixable-vulnerabilities",
+      "config": {
+        "severities": [
+          "CRITICAL",
+          "HIGH"
+        ],
+        "fixable_only": true
+      }
+    },
+    {
+      "name": "high-profile-vulnerabilities",
+      "enabled": false
+    },
+    {
+      "name": "copyleft-license",
+      "enabled": false
+    },
+    {
+      "name": "no-stale-base-images",
+      "enabled": false
+    },
+    {
+      "name": "supply-chain-attestations",
+      "enabled": false
+    },
+    {
+      "name": "default-non-root-user",
+      "enabled": false
+    },
+    {
+      "name": "approved-base-images",
+      "enabled": false
+    }
+  ]
+}

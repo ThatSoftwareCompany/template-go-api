@@ -128,11 +128,11 @@ jobs:
       - name: Scan production image with Docker Scout
         uses: docker/scout-action@2688993af7bafd6ba8c6a74ec652442be91dd82b # v1.23.1
         with:
-          command: cves
+          command: policy
           image: local://tsc-template-go-api:production
-          only-severities: high,critical
-          only-fixed: true
+          policy-config: .github/docker-scout-policy.json
           exit-code: true
+          write-comment: false
 
       - name: Start Compose stack
         env:

@@ -66,7 +66,7 @@ The exception is maintenance of the canonical template itself. Template maintain
 
 ## Supply-chain maintenance
 
-Keep `.github/dependabot.yml` enabled for `gomod` and `github-actions`. Do not merge a major dependency update without reviewing compatibility and release notes. Dependency Review blocks high and critical findings; `govulncheck` blocks reachable Go vulnerabilities; Docker Scout blocks fixable high and critical vulnerabilities in the production image. The CI action-pin validator requires every external Action to use a full commit SHA and a release comment.
+Keep `.github/dependabot.yml` enabled for `gomod` and `github-actions`. Do not merge a major dependency update without reviewing compatibility and release notes. Dependency Review blocks high and critical findings; `govulncheck` blocks reachable Go vulnerabilities; Docker Scout evaluates the local production image with the versioned `.github/docker-scout-policy.json` and blocks fixable high and critical vulnerabilities. The policy mode is local and does not require Docker Hub credentials or a Docker Scout organization entitlement. The CI action-pin validator requires every external Action to use a full commit SHA and a release comment.
 
 Security exceptions are a last-resort, temporary allowlist, not a permanent bypass. Add only exact scanner ID/component pairs to `.github/security-exceptions.json`, with a responsible owner, a tracking issue, a reason, and an expiry date. The file is validated on every run; expired entries and wildcards fail the build.
 

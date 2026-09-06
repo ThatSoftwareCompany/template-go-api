@@ -205,7 +205,7 @@ Public registration, password recovery, Google OAuth, frontend implementation, a
 
 ### Supply-chain controls
 
-Dependabot groups weekly minor and patch updates for Go modules and GitHub Actions. Major updates remain separate for manual review. Dependency Review blocks high and critical dependency findings in pull requests. CI runs the pinned `govulncheck` version and Docker Scout against the locally built production image; fixable high and critical image findings block the workflow.
+Dependabot groups weekly minor and patch updates for Go modules and GitHub Actions. Major updates remain separate for manual review. Dependency Review blocks high and critical dependency findings in pull requests. CI runs the pinned `govulncheck` version and Docker Scout policy evaluation against the locally built production image; fixable high and critical image findings block the workflow. The policy is versioned in `.github/docker-scout-policy.json` and does not require Docker Hub credentials.
 
 All Actions are pinned to immutable commit SHAs. Keep the version comment when updating a pin so Dependabot can identify the intended release. `scripts/validate-action-pins.sh` rejects tags, branches, malformed SHAs, and pins without a human-readable version comment.
 
