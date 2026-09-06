@@ -12,7 +12,6 @@ required_files=(
   ".template/manifest.json"
   ".template/ownership.json"
   ".github/dependabot.yml"
-  ".github/docker-scout-policy.json"
   ".github/security-exceptions.json"
   ".github/workflows/template-update.yml"
   ".github/workflows/dependency-review.yml"
@@ -67,18 +66,6 @@ jq -e '
   )
 ' "${repo_root}/.template/ownership.json" >/dev/null || {
   echo "template ownership metadata is invalid" >&2
-  exit 1
-}
-
-jq -e '
-  (.policies | type == "array") and
-  any(.policies[];
-    .name == "fixable-vulnerabilities" and
-    .config.fixable_only == true and
-    (.config.severities | sort) == ["CRITICAL", "HIGH"]
-  )
-' "${repo_root}/.github/docker-scout-policy.json" >/dev/null || {
-  echo "Docker Scout policy must block fixable high and critical vulnerabilities" >&2
   exit 1
 }
 

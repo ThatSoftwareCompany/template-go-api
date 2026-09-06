@@ -100,7 +100,7 @@ Implementation acceptance criteria: the auth module is isolated under `internal/
 
 - Add weekly grouped Dependabot updates for Go modules and GitHub Actions; major updates remain separate for review.
 - Add blocking Dependency Review for high and critical findings, exact-version `govulncheck`, strict `go.sum` verification, and full-SHA pinning for every Action.
-- Scan the local production image with Docker Scout policy evaluation and block fixable high and critical findings without requiring Docker Hub credentials.
+- Scan the local production image with Docker Scout and block fixable high and critical findings. The CI workflow requires read-only `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` Actions secrets.
 - Add `.github/security-exceptions.json` with exact matching, ownership, issue tracking, and expiry validation; exceptions never bypass Action pinning.
 - Add `.template/ownership.json`, updater dry-run mode, release-note parsing, explicit reports, pre-applied-file detection, compatibility checks, and manual conflict guidance.
 - Mark breaking updates in generated PRs and fail the dedicated review gate until the derived application is migrated manually.
