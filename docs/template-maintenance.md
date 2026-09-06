@@ -14,6 +14,9 @@ The manifest is the source of truth for the template identity, version, source r
 - `.github/workflows/template-update.yml` detects version tags and opens derived-repository PRs with least-privilege write permissions.
 - The workflow accepts an optional `TEMPLATE_UPDATE_TOKEN` secret for updates that modify `.github/workflows` files.
 - Compatibility changes are rejected automatically; file deletions remain a manual migration.
+- `.template/ownership.json` declares template-managed and application-owned paths. Existing application-owned paths are preserved; missing extension-point files are bootstrapped once from the template.
+- `--dry-run --report-file PATH` reports changed paths, compatibility, release notes, and breaking status without modifying the derived repository.
+- Release notes are machine-checked for `breaking: true|false`. Breaking updates are opened with a `[BREAKING]` title and fail the dedicated review gate until the migration is handled manually.
 
 ## Update workflow
 
@@ -28,6 +31,20 @@ The derived-repository workflow performs these steps:
 7. Record the new `template_version` and `template_commit` only after a complete update.
 8. Create an update pull request in the derived repository.
 9. Leave application-specific conflicts for manual resolution; it must never merge generated pull requests automatically.
+
+For a local preview, use:
+
+```bash
+./scripts/template-update.sh \
+  --project-root "$PWD" \
+  --template-repository https://github.com/ThatSoftwareCompany/template-go-api.git \
+  --from-commit <current-template-commit> \
+  --to-commit <target-template-commit> \
+  --dry-run \
+  --report-file /tmp/template-update-report.md
+```
+
+The updater requires a clean working tree. A conflict report is informational and provenance is not advanced until the complete update is applied and validated. Resolve only the reported files, preserve application-owned routes, run the generated repository test suite, and record provenance after review.
 
 If a generated repository contains its own Git commit in `template_commit`, the workflow resolves the source commit from the matching release tag and opens a provenance-repair pull request.
 
@@ -47,6 +64,12 @@ Application-owned authorization must be tested at the HTTP boundary with three c
 
 The exception is maintenance of the canonical template itself. Template maintainers may change managed files when implementing a deliberate template, security, test, documentation, or lifecycle change, with the corresponding version, validation, and review updates.
 
+## Supply-chain maintenance
+
+Keep `.github/dependabot.yml` enabled for `gomod` and `github-actions`. Do not merge a major dependency update without reviewing compatibility and release notes. Dependency Review blocks high and critical findings; `govulncheck` blocks reachable Go vulnerabilities; Docker Scout evaluates the local production image and blocks fixable high and critical vulnerabilities. The CI scan requires `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` Actions secrets containing a read-only Docker Hub PAT; never put them in the repository or `.env`. The CI action-pin validator requires every external Action to use a full commit SHA and a release comment.
+
+Security exceptions are a last-resort, temporary allowlist, not a permanent bypass. Add only exact scanner ID/component pairs to `.github/security-exceptions.json`, with a responsible owner, a tracking issue, a reason, and an expiry date. The file is validated on every run; expired entries and wildcards fail the build.
+
 ## Authentication release migration
 
 `v0.3.0` adds template-managed authentication infrastructure and the second SQL migration. A derived repository consuming this release must apply migrations before starting a database-backed API. It must also provide `AUTH_PRIVATE_KEY_FILE`, `AUTH_PUBLIC_KEY_FILE`, `AUTH_KEY_ID`, `AUTH_JWT_ISSUER`, `AUTH_JWT_AUDIENCE`, and an `AUTH_CSRF_SECRET` containing at least 32 bytes. Generate local development keys with `scripts/generate-dev-auth-keys.sh`; production keys and secrets must be mounted outside the repository.
@@ -60,6 +83,7 @@ Complete this checklist after generating a repository from the template and befo
 - [ ] Create a dedicated fine-grained personal access token or GitHub App installation token scoped to the derived repository.
 - [ ] Grant Contents: Read and write, Workflows: Read and write, and Pull requests: Read and write.
 - [ ] Add the token as the repository Actions secret `TEMPLATE_UPDATE_TOKEN` under `Settings -> Secrets and variables -> Actions`.
+- [ ] Add `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` as Actions secrets using a dedicated read-only Docker Hub PAT for the production image scan.
 - [ ] In `Settings -> Actions -> General`, enable read and write workflow permissions.
 - [ ] Enable GitHub Actions pull request creation if the organization policy exposes that option.
 - [ ] Run the workflow manually and verify that it creates an update branch and pull request.

@@ -12,6 +12,7 @@ This repository is the canonical backend template for That Software Company. It 
 - Never commit `.env`, credentials, tokens, passwords, private keys, or other secrets. `.env.example` may contain placeholders only.
 - The repository is licensed under Apache-2.0. Do not change the declared license without repository-owner approval.
 - Do not change the frontend template from this repository.
+- This release adds supply-chain gates. Keep Dependabot, dependency review, vulnerability scanning, exception metadata, and SHA-pinned workflows intact.
 
 ## Architecture
 
@@ -47,6 +48,8 @@ Add product-specific HTTP routes and module composition in `internal/app/routes.
 
 The exception is intentional maintenance of the canonical template itself, including infrastructure fixes, security fixes, documentation, tests, and template lifecycle changes. When resolving an update conflict, preserve both the latest template behavior and the documented application extension point.
 
+`.template/ownership.json` is the machine-readable ownership contract. Generated repositories may add application-owned paths through a reviewed maintenance change, but must not weaken the default template-managed paths or use wildcards to bypass ownership checks.
+
 ## Security rules
 
 - Use `log/slog` JSON logs and never log request bodies, authorization headers, cookies, passwords, tokens, or secrets.
@@ -57,6 +60,8 @@ The exception is intentional maintenance of the canonical template itself, inclu
 - Authorization is deny-by-default. Do not bypass `RequireAuthentication` or `RequirePermission`, and do not grant permissions implicitly through a role name.
 - Product routes may require both an explicit role and permission; an authenticated user without either boundary must receive `403`.
 - The internal error listing endpoint must remain protected by the explicit `errors:read` permission.
+- GitHub Actions must use immutable 40-character lowercase commit SHAs with a human-readable version comment. Do not replace a SHA with a tag or branch.
+- Security exceptions are optional, exact-match, owner-attributed, issue-linked, and expire on a fixed UTC date. They never permit unpinned Actions.
 
 ## Validation commands
 
@@ -90,6 +95,8 @@ Template update scripts must also pass shell syntax validation:
 
 ```bash
 bash -n scripts/setup.sh scripts/template-update.sh
+./scripts/validate-action-pins.sh
+./scripts/validate-security-exceptions.sh
 ```
 
 ## Git and review

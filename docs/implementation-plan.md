@@ -18,6 +18,7 @@ Every release must have a version tag, a release note under `docs/releases/`, an
 - `0.2.8`: corrected publication of the lifecycle hotfix with consistent version metadata.
 - `0.2.9`: provenance detection hotfix for derived repositories whose recorded source commit differs from an immutable historical tag.
 - `0.2.10`: updater hardening for pre-applied files, custom module paths, base blobs, and explicit conflict reporting.
+- `0.3.1`: reconciliation release for protected application-route composition merged after the original `v0.3.0` tag.
 
 ## `0.2.5` — foundation hardening
 
@@ -97,11 +98,15 @@ Implementation acceptance criteria: the auth module is isolated under `internal/
 
 ## `0.4.0` — supply-chain security and lifecycle
 
-- Add weekly grouped Dependabot updates for Go modules and GitHub Actions, plus dependency review on pull requests.
-- Add `govulncheck ./...`, strict `go.sum` verification, minimal workflow permissions, and full-SHA pinning for Actions.
-- Scan production images with Docker Scout, initially blocking fixable high and critical findings.
-- Add versioned release notes and make the updater include them in update PRs, mark breaking changes, support dry-run mode, report conflicts explicitly, and distinguish template-managed from application-owned paths.
-- Never auto-resolve semantic conflicts. Evaluate artifact attestations for binary and image releases.
+- Add weekly grouped Dependabot updates for Go modules and GitHub Actions; major updates remain separate for review.
+- Add blocking Dependency Review for high and critical findings, exact-version `govulncheck`, strict `go.sum` verification, and full-SHA pinning for every Action.
+- Scan the local production image with Docker Scout and block fixable high and critical findings. The CI workflow requires read-only `DOCKER_SCOUT_HUB_USER` and `DOCKER_SCOUT_HUB_PASSWORD` Actions secrets.
+- Add `.github/security-exceptions.json` with exact matching, ownership, issue tracking, and expiry validation; exceptions never bypass Action pinning.
+- Add `.template/ownership.json`, updater dry-run mode, release-note parsing, explicit reports, pre-applied-file detection, compatibility checks, and manual conflict guidance.
+- Mark breaking updates in generated PRs and fail the dedicated review gate until the derived application is migrated manually.
+- Keep artifact attestations as an evaluation/documentation item, not an implementation requirement for this release.
+
+Acceptance criteria: the template validates with all Action pins immutable; Dependency Review, `govulncheck`, Docker Scout, module integrity, lifecycle, race, integration, and build gates pass; dry-run leaves repositories unchanged; clean-room updates preserve `internal/app/routes.go`; and breaking, conflicting, incompatible, deleting, expired-exception, and unpinned-action scenarios fail safely.
 
 ## `0.5.0` — provider-agnostic same-origin deployment contract
 
