@@ -41,7 +41,8 @@ resolve_manifest_revision() {
 }
 
 v031=$(git -C "$source_repository" rev-parse --verify v0.3.1^{commit} 2>/dev/null || resolve_manifest_revision "0.3.1")
-v040=$(git -C "$source_repository" rev-parse HEAD^{commit})
+v040=$(git -C "$source_repository" rev-parse v0.4.0^{commit})
+v041=$(git -C "$source_repository" rev-parse HEAD^{commit})
 source_module_path=$(awk '$1 == "module" { print $2; exit }' "$source_repository/go.mod")
 if [[ -z "$source_module_path" ]]; then
 	echo "unable to resolve the source Go module path" >&2
@@ -350,15 +351,15 @@ run_deletion_update_test() {
 	expect_update_rejection "$source_directory" "${temporary}/deleting-target" "delete files require manual migration"
 }
 
-run_v040_clean_room_update_test() {
-	local directory="${temporary}/v040-derived"
-	local report_file="${temporary}/v040-dry-run.md"
+run_v041_clean_room_update_test() {
+	local directory="${temporary}/v041-derived"
+	local report_file="${temporary}/v041-dry-run.md"
 	extract_revision "$v031" "$directory"
 	initialize_repository "$directory"
 
 	(
 		cd "$directory"
-		GOCACHE="${temporary}/v040-cache" go run ./cmd/template \
+		GOCACHE="${temporary}/v041-cache" go run ./cmd/template \
 			-command record-provenance \
 			-template-version "0.3.1" \
 			-template-commit "$v031"
@@ -367,6 +368,10 @@ run_v040_clean_room_update_test() {
 	find "$directory" -type f -name '*.go' -print0 | while IFS= read -r -d '' file; do
 		sed -i "s|${escaped_source_module_path}|github.com/example/v040-derived|g" "$file"
 	done
+	temporary_manifest=$(mktemp)
+	jq '.dependency_versions["github.com/jackc/pgx/v5"] = "v5.8.0"' \
+		"$directory/.template/manifest.json" > "$temporary_manifest"
+	mv "$temporary_manifest" "$directory/.template/manifest.json"
 	git -C "$directory" add .
 	git -C "$directory" commit -qm "test: customize v0.4 clean-room repository"
 
@@ -377,7 +382,7 @@ run_v040_clean_room_update_test() {
 		--project-root "$directory" \
 		--template-repository "$source_repository" \
 		--from-commit "$v031" \
-		--to-commit "$v040" \
+		--to-commit "$v041" \
 		--dry-run \
 		--report-file "$report_file"
 	after=$(git -C "$directory" status --porcelain)
@@ -389,13 +394,15 @@ run_v040_clean_room_update_test() {
 		--project-root "$directory" \
 		--template-repository "$source_repository" \
 		--from-commit "$v031" \
-		--to-commit "$v040"
+		--to-commit "$v041"
 
-	jq -e '.template_version == "0.4.0" and .template_commit == "'"$v040"'"' \
+	jq -e '.template_version == "0.4.1" and .template_commit == "'"$v041"'"' \
+		"$directory/.template/manifest.json" >/dev/null
+	jq -e '.dependency_versions["github.com/jackc/pgx/v5"] == "v5.10.0"' \
 		"$directory/.template/manifest.json" >/dev/null
 	test -f "$directory/.template/ownership.json"
 	grep -Fq 'github.com/example/v040-derived/internal/platform/errstore' "$directory/internal/app/routes.go"
-	GOCACHE="${temporary}/v040-derived-cache" go -C "$directory" test ./...
+	GOCACHE="${temporary}/v041-derived-cache" go -C "$directory" test ./...
 }
 
 run_breaking_release_note_test() {
@@ -412,21 +419,21 @@ run_breaking_release_note_test() {
 	git -C "$source_directory" commit -qm "test: mark release as breaking"
 	source_commit=$(git -C "$source_directory" rev-parse HEAD)
 
-	extract_revision "$v040" "$target_directory"
+	extract_revision "$v041" "$target_directory"
 	initialize_repository "$target_directory"
 	(
 		cd "$target_directory"
 		GOCACHE="${temporary}/breaking-cache" go run ./cmd/template \
 			-command record-provenance \
-			-template-version "0.4.0" \
-			-template-commit "$v040"
+			-template-version "0.4.1" \
+			-template-commit "$v041"
 	)
 	git -C "$target_directory" add .template/manifest.json
 	git -C "$target_directory" commit -qm "test: record current template provenance"
 	"$repo_root/scripts/template-update.sh" \
 		--project-root "$target_directory" \
 		--template-repository "$source_directory" \
-		--from-commit "$v040" \
+		--from-commit "$v041" \
 		--to-commit "$source_commit" \
 		--dry-run \
 		--report-file "$report_file"
@@ -601,7 +608,7 @@ run_conflicting_file_test
 run_legacy_bootstrap_test
 run_incompatible_update_test
 run_deletion_update_test
-run_v040_clean_room_update_test
+run_v041_clean_room_update_test
 run_breaking_release_note_test
 run_action_pin_validation_test
 run_workflow_validation_test

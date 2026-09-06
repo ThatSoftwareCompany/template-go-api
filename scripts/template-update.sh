@@ -225,6 +225,12 @@ source_go_compatibility=$(jq -er '.compatibility.go' "$target_manifest")
 source_postgresql_compatibility=$(jq -er '.compatibility.postgresql' "$target_manifest")
 current_go_compatibility=$(jq -er '.compatibility.go' "$current_manifest")
 current_postgresql_compatibility=$(jq -er '.compatibility.postgresql' "$current_manifest")
+source_dependency_versions=$(jq -cS -er '.dependency_versions' "$target_manifest")
+current_dependency_versions=$(jq -cS -er '.dependency_versions' "$current_manifest")
+manifest_dependency_update_required=false
+if [[ "$source_dependency_versions" != "$current_dependency_versions" ]]; then
+  manifest_dependency_update_required=true
+fi
 
 if [[ "$source_go_compatibility" != "$current_go_compatibility" || "$source_postgresql_compatibility" != "$current_postgresql_compatibility" ]]; then
   echo "template compatibility changed; manual migration is required" >&2
@@ -348,6 +354,9 @@ done
 
 git -C "$source_dir" diff --binary --find-renames "$from_commit" "$to_commit" -- "${patch_pathspecs[@]}" > "$patch_file"
 changed_paths=$(git -C "$source_dir" diff --name-only "$from_commit" "$to_commit" -- "${patch_pathspecs[@]}" | sort)
+if [[ "$manifest_dependency_update_required" == true ]]; then
+  changed_paths=$(printf '%s\n%s\n' "$changed_paths" '.template/manifest.json' | sed '/^$/d' | sort -u)
+fi
 if [[ "$dry_run" == true ]]; then
   write_report "dry-run" "$changed_paths"
   echo "Template update dry-run completed from ${from_commit} to ${to_commit} (version ${template_version})."
@@ -456,6 +465,15 @@ if [[ -s "$patch_file" ]]; then
 	if [[ "$applied_with_index" == true ]]; then
 		(cd "$repo_root" && git reset --quiet)
 	fi
+fi
+
+if [[ "$manifest_dependency_update_required" == true ]]; then
+  synced_manifest=$(mktemp "${temporary}/synced-manifest.XXXXXX")
+  jq --slurpfile source_manifest "$target_manifest" \
+    '.dependency_versions = $source_manifest[0].dependency_versions' \
+    "$current_manifest" > "$synced_manifest"
+  mv "$synced_manifest" "$current_manifest"
+  echo "Synchronized dependency versions in .template/manifest.json."
 fi
 
 go_cache=${GOCACHE:-}
