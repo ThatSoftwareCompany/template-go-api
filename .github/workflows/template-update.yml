@@ -126,15 +126,15 @@ jobs:
               -command record-provenance \
               -template-version "$LATEST_VERSION" \
               -template-commit "$CURRENT_COMMIT"
-            cat > "$REPORT_FILE" <<EOF
-# Template update report
-
-- status: provenance-repair
-- from_commit: ${CURRENT_COMMIT}
-- to_commit: ${LATEST_COMMIT}
-- template_version: ${LATEST_VERSION}
-- breaking: false
-EOF
+            printf '%s\n' \
+              '# Template update report' \
+              '' \
+              '- status: provenance-repair' \
+              "- from_commit: ${CURRENT_COMMIT}" \
+              "- to_commit: ${LATEST_COMMIT}" \
+              "- template_version: ${LATEST_VERSION}" \
+              '- breaking: false' \
+              > "$REPORT_FILE"
           else
             ./scripts/template-update.sh \
               --template-repository "$TEMPLATE_REPOSITORY" \

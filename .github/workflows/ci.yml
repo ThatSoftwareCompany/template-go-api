@@ -39,6 +39,9 @@ jobs:
       - name: Validate shell scripts
         run: bash -n scripts/*.sh
 
+      - name: Validate workflow syntax
+        run: ./scripts/validate-workflows.sh
+
       - name: Validate GitHub Action pins
         run: ./scripts/validate-action-pins.sh
 
